@@ -2,127 +2,158 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>チャッピー先生による投資スタイル診断ツール</title>
+<title>チャッピー先生による投資スタイル診断</title>
 <style>
 body {
+  margin: 0;
   background: #0d1117;
   color: #c9d1d9;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  text-align: center;
-  padding: 40px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
 }
-.container {
-  max-width: 500px;
-  margin: auto;
+.card {
+  width: 90%;
+  max-width: 520px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 18px;
+  padding: 32px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+.screen {
+  display: none;
+}
+.screen.active {
+  display: block;
 }
 h1 {
-  margin-bottom: 30px;
+  font-size: 24px;
+  margin-bottom: 12px;
 }
-.question {
-  margin: 20px 0;
+p {
+  line-height: 1.7;
 }
 button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #30363d;
   background: #21262d;
   color: #c9d1d9;
-  border: 1px solid #30363d;
-  padding: 10px 20px;
-  margin: 5px;
+  font-size: 16px;
   cursor: pointer;
-  border-radius: 6px;
 }
 button:hover {
   background: #30363d;
 }
-#result {
-  margin-top: 30px;
-  font-size: 18px;
-  font-weight: bold;
+.small {
+  color: #8b949e;
+  font-size: 13px;
+  margin-top: 20px;
 }
-.loading {
-  opacity: 0.6;
+.result {
+  font-size: 20px;
+  font-weight: 700;
+  margin-top: 24px;
 }
 </style>
 </head>
-
 <body>
-<div class="container">
-  <h1>AI投資適性診断</h1>
 
-  <div class="question">
+<div class="card">
+
+  <div id="q1" class="screen active">
+    <h1>AI投資適性診断</h1>
     <p>① 資本主義を信じている？</p>
-    <button onclick="setAnswer('capital', true)">YES</button>
-    <button onclick="setAnswer('capital', false)">NO</button>
+    <button onclick="answer('capital', true, 'q2')">YES</button>
+    <button onclick="answer('capital', false, 'q2')">NO</button>
   </div>
 
-  <div class="question">
+  <div id="q2" class="screen">
+    <h1>質問 2 / 3</h1>
     <p>② 資産をなるべく増やしたい？</p>
-    <button onclick="setAnswer('growth', true)">YES</button>
-    <button onclick="setAnswer('growth', false)">NO</button>
+    <button onclick="answer('growth', true, 'q3')">YES</button>
+    <button onclick="answer('growth', false, 'q3')">NO</button>
   </div>
 
-  <div class="question">
+  <div id="q3" class="screen">
+    <h1>質問 3 / 3</h1>
     <p>③ 夜はぐっすり寝たい？</p>
-    <button onclick="setAnswer('sleep', true)">YES</button>
-    <button onclick="setAnswer('sleep', false)">NO</button>
+    <button onclick="answer('sleep', true, 'loading')">YES</button>
+    <button onclick="answer('sleep', false, 'loading')">NO</button>
   </div>
 
-  <button onclick="diagnose()">診断する</button>
+  <div id="loading" class="screen">
+    <h1>分析中...</h1>
+    <p>あなたのスタイルを解析しています。</p>
+  </div>
 
-  <div id="result"></div>
+  <div id="result" class="screen">
+    <h1>診断結果</h1>
+    <div id="resultText" class="result"></div>
+    <p class="small">※これは投資助言ではありませんし、生活のするものでもありません。</p>
+    <button onclick="restart()">もう一度診断する</button>
+  </div>
+
 </div>
 
 <script>
-let answers = {
+const answers = {
   capital: null,
   growth: null,
   sleep: null
 };
 
-function setAnswer(key, value) {
-  answers[key] = value;
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(screen => {
+    screen.classList.remove('active');
+  });
+  document.getElementById(id).classList.add('active');
 }
 
-function diagnose() {
-  if (answers.capital === null || answers.growth === null || answers.sleep === null) {
-    document.getElementById("result").innerText = "全部答えろや";
-    return;
+function answer(key, value, nextScreen) {
+  answers[key] = value;
+  showScreen(nextScreen);
+
+  if (nextScreen === 'loading') {
+    setTimeout(showResult, 1400);
+  }
+}
+
+function showResult() {
+  let text = "";
+
+  if (answers.capital && answers.growth && answers.sleep) {
+    text = "普通の人間や。インデックスでも眺めながら労働がんばるんやで";
+  } else if (answers.capital && answers.growth && !answers.sleep) {
+    text = "そのテンションで市場に来るな。まず寝るんやで";
+  } else if (answers.capital && !answers.growth && answers.sleep) {
+    text = "守り重視やな。そのまま平和に寝ててええんやで";
+  } else if (answers.capital && !answers.growth && !answers.sleep) {
+    text = "慎重なのか壊れてるのか分からん。寝ろ";
+  } else if (!answers.capital && answers.growth && answers.sleep) {
+    text = "欲張りセットやめろ。怪しい投資話には気をつけるんやで";
+  } else if (!answers.capital && answers.growth && !answers.sleep) {
+    text = "矛盾してるぞ。寝てから出直んやで";
+  } else if (!answers.capital && !answers.growth && answers.sleep) {
+    text = "完成形や。何もせず寝てるんやで";
+  } else {
+    text = "全てを諦めてるやろ。とりあえず寝ろ";
   }
 
-  const result = document.getElementById("result");
-  result.innerText = "分析中...";
-  result.classList.add("loading");
+  document.getElementById("resultText").innerText = text;
+  showScreen("result");
+}
 
-  setTimeout(() => {
-    result.classList.remove("loading");
-
-    // 分岐ロジック
-    if (answers.capital && answers.growth) {
-      if (answers.sleep) {
-        result.innerText = "普通の人間や。インデックスでも眺めながら労働がんばるんやで";
-      } else {
-        result.innerText = "そのテンションで市場に来るな。まず寝ろ";
-      }
-    } else if (answers.capital && !answers.growth) {
-      if (answers.sleep) {
-        result.innerText = "守り重視やな。そのまま平和に寝とけ";
-      } else {
-        result.innerText = "慎重なのか壊れてるのか分からん。寝ろ";
-      }
-    } else if (!answers.capital && answers.growth) {
-      if (answers.sleep) {
-        result.innerText = "欲張りセットやめろ。怪しい投資話には気をつけるんやで";
-      } else {
-        result.innerText = "矛盾してるぞ。寝てから出直せ";
-      }
-    } else {
-      if (answers.sleep) {
-        result.innerText = "完成形や。何もせず寝ろ";
-      } else {
-        result.innerText = "全てを諦めてるやろ。とりあえず寝ろ";
-      }
-    }
-
-  }, 1500);
+function restart() {
+  answers.capital = null;
+  answers.growth = null;
+  answers.sleep = null;
+  showScreen("q1");
 }
 </script>
 
