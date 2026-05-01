@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>チャッピー先生による投資スタイル診断ツール</title>
+<style>
+body {
+  background: #0d1117;
+  color: #c9d1d9;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  text-align: center;
+  padding: 40px;
+}
+.container {
+  max-width: 500px;
+  margin: auto;
+}
+h1 {
+  margin-bottom: 30px;
+}
+.question {
+  margin: 20px 0;
+}
+button {
+  background: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  padding: 10px 20px;
+  margin: 5px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+button:hover {
+  background: #30363d;
+}
+#result {
+  margin-top: 30px;
+  font-size: 18px;
+  font-weight: bold;
+}
+.loading {
+  opacity: 0.6;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <h1>AI投資適性診断</h1>
+
+  <div class="question">
+    <p>① 資本主義を信じている？</p>
+    <button onclick="setAnswer('capital', true)">YES</button>
+    <button onclick="setAnswer('capital', false)">NO</button>
+  </div>
+
+  <div class="question">
+    <p>② 資産をなるべく増やしたい？</p>
+    <button onclick="setAnswer('growth', true)">YES</button>
+    <button onclick="setAnswer('growth', false)">NO</button>
+  </div>
+
+  <div class="question">
+    <p>③ 夜はぐっすり寝たい？</p>
+    <button onclick="setAnswer('sleep', true)">YES</button>
+    <button onclick="setAnswer('sleep', false)">NO</button>
+  </div>
+
+  <button onclick="diagnose()">診断する</button>
+
+  <div id="result"></div>
+</div>
+
+<script>
+let answers = {
+  capital: null,
+  growth: null,
+  sleep: null
+};
+
+function setAnswer(key, value) {
+  answers[key] = value;
+}
+
+function diagnose() {
+  if (answers.capital === null || answers.growth === null || answers.sleep === null) {
+    document.getElementById("result").innerText = "全部答えろや";
+    return;
+  }
+
+  const result = document.getElementById("result");
+  result.innerText = "分析中...";
+  result.classList.add("loading");
+
+  setTimeout(() => {
+    result.classList.remove("loading");
+
+    // 分岐ロジック
+    if (answers.capital && answers.growth) {
+      if (answers.sleep) {
+        result.innerText = "普通の人間や。インデックスでも眺めながら労働がんばるんやで";
+      } else {
+        result.innerText = "そのテンションで市場に来るな。まず寝ろ";
+      }
+    } else if (answers.capital && !answers.growth) {
+      if (answers.sleep) {
+        result.innerText = "守り重視やな。そのまま平和に寝とけ";
+      } else {
+        result.innerText = "慎重なのか壊れてるのか分からん。寝ろ";
+      }
+    } else if (!answers.capital && answers.growth) {
+      if (answers.sleep) {
+        result.innerText = "欲張りセットやめろ。怪しい投資話には気をつけるんやで";
+      } else {
+        result.innerText = "矛盾してるぞ。寝てから出直せ";
+      }
+    } else {
+      if (answers.sleep) {
+        result.innerText = "完成形や。何もせず寝ろ";
+      } else {
+        result.innerText = "全てを諦めてるやろ。とりあえず寝ろ";
+      }
+    }
+
+  }, 1500);
+}
+</script>
+
+</body>
+</html>
