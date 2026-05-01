@@ -2,104 +2,158 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>チャッピー先生による投資スタイル診断</title>
+
 <style>
+:root {
+  --bg: #0d1117;
+  --card: #161b22;
+  --border: #30363d;
+  --text: #c9d1d9;
+  --muted: #8b949e;
+  --button: #21262d;
+  --button-hover: #30363d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
 body {
   margin: 0;
-  background: #0d1117;
-  color: #c9d1d9;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  padding: 24px 16px;
 }
+
 .card {
-  width: 90%;
+  width: 100%;
   max-width: 520px;
-  background: #161b22;
-  border: 1px solid #30363d;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 18px;
   padding: 32px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 }
+
 .screen {
   display: none;
 }
+
 .screen.active {
   display: block;
 }
+
 h1 {
-  font-size: 24px;
-  margin-bottom: 12px;
+  font-size: clamp(22px, 6vw, 24px);
+  line-height: 1.35;
+  margin: 0 0 16px;
 }
+
 p {
   line-height: 1.7;
+  margin: 0 0 18px;
 }
+
 button {
   width: 100%;
   margin-top: 12px;
-  padding: 14px;
+  padding: 14px 16px;
   border-radius: 12px;
-  border: 1px solid #30363d;
-  background: #21262d;
-  color: #c9d1d9;
+  border: 1px solid var(--border);
+  background: var(--button);
+  color: var(--text);
   font-size: 16px;
+  line-height: 1.4;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
+
 button:hover {
-  background: #30363d;
+  background: var(--button-hover);
 }
+
+button:active {
+  transform: translateY(1px);
+}
+
 .small {
-  color: #8b949e;
+  color: var(--muted);
   font-size: 13px;
+  line-height: 1.7;
   margin-top: 20px;
 }
+
 .result {
-  font-size: 20px;
+  font-size: clamp(18px, 5vw, 20px);
+  line-height: 1.7;
   font-weight: 700;
   margin-top: 24px;
+  word-break: break-word;
+}
+
+@media (max-width: 420px) {
+  body {
+    align-items: flex-start;
+    padding-top: 40px;
+  }
+
+  .card {
+    padding: 24px 20px;
+    border-radius: 16px;
+  }
 }
 </style>
 </head>
+
 <body>
 
-<div class="card">
+<main class="card">
 
-  <div id="q1" class="screen active">
+  <section id="q1" class="screen active">
     <h1>チャッピー先生による投資スタイル診断</h1>
     <p>① 資本主義を信じている？</p>
-    <button onclick="answer('capital', true, 'q2')">YES</button>
-    <button onclick="answer('capital', false, 'q2')">NO</button>
-  </div>
+    <button type="button" onclick="answer('capital', true, 'q2')">YES</button>
+    <button type="button" onclick="answer('capital', false, 'q2')">NO</button>
+  </section>
 
-  <div id="q2" class="screen">
+  <section id="q2" class="screen">
     <h1>質問 2 / 3</h1>
     <p>② 資産をなるべく増やしたい？</p>
-    <button onclick="answer('growth', true, 'q3')">YES</button>
-    <button onclick="answer('growth', false, 'q3')">NO</button>
-  </div>
+    <button type="button" onclick="answer('growth', true, 'q3')">YES</button>
+    <button type="button" onclick="answer('growth', false, 'q3')">NO</button>
+  </section>
 
-  <div id="q3" class="screen">
+  <section id="q3" class="screen">
     <h1>質問 3 / 3</h1>
     <p>③ 夜はぐっすり寝たい？</p>
-    <button onclick="answer('sleep', true, 'loading')">YES</button>
-    <button onclick="answer('sleep', false, 'loading')">NO</button>
-  </div>
+    <button type="button" onclick="answer('sleep', true, 'loading')">YES</button>
+    <button type="button" onclick="answer('sleep', false, 'loading')">NO</button>
+  </section>
 
-  <div id="loading" class="screen">
+  <section id="loading" class="screen">
     <h1>分析中...</h1>
     <p>あなたのスタイルを解析しています。</p>
-  </div>
+  </section>
 
-  <div id="result" class="screen">
+  <section id="result" class="screen">
     <h1>診断結果</h1>
     <div id="resultText" class="result"></div>
     <p class="small">※これは投資助言ではありませんし、生活のするものでもありません。</p>
-    <button onclick="restart()">もう一度診断する</button>
-  </div>
+    <button type="button" onclick="restart()">もう一度診断する</button>
+  </section>
 
-</div>
+</main>
 
 <script>
 const answers = {
@@ -109,17 +163,18 @@ const answers = {
 };
 
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(screen => {
-    screen.classList.remove('active');
+  document.querySelectorAll(".screen").forEach(function(screen) {
+    screen.classList.remove("active");
   });
-  document.getElementById(id).classList.add('active');
+
+  document.getElementById(id).classList.add("active");
 }
 
 function answer(key, value, nextScreen) {
   answers[key] = value;
   showScreen(nextScreen);
 
-  if (nextScreen === 'loading') {
+  if (nextScreen === "loading") {
     setTimeout(showResult, 1400);
   }
 }
