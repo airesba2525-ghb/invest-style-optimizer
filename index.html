@@ -4,213 +4,427 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>チャッピー先生による投資スタイル診断</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 
 <style>
 :root {
-  --bg: #0d1117;
-  --card: #161b22;
-  --border: #30363d;
-  --text: #c9d1d9;
-  --muted: #8b949e;
-  --button: #21262d;
-  --button-hover: #30363d;
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --border: rgba(255,255,255,0.07);
+  --text: #e8e6f0;
+  --muted: #6b6880;
+  --accent: #b8ff57;
+  --accent-dim: rgba(184,255,87,0.12);
+  --accent-glow: rgba(184,255,87,0.25);
 }
 
-* {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html {
-  min-height: 100%;
-}
+html { height: 100%; }
 
 body {
-  margin: 0;
   min-height: 100vh;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: 'Noto Sans JP', sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 24px 16px;
+  overflow-x: hidden;
+}
+
+/* ── noise grain overlay ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── ambient glow ── */
+body::after {
+  content: '';
+  position: fixed;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(184,255,87,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .card {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 520px;
-  background: var(--card);
+  max-width: 480px;
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 32px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  border-radius: 24px;
+  padding: 40px 36px;
+  overflow: hidden;
 }
 
-.screen {
-  display: none;
+/* ── card top accent bar ── */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
 }
 
-.screen.active {
-  display: block;
+/* ── decorative corner mark ── */
+.card::after {
+  content: '✦';
+  position: absolute;
+  top: 18px; right: 24px;
+  font-size: 12px;
+  color: var(--accent);
+  opacity: 0.6;
 }
 
+/* ── screen transitions ── */
+.screen { display: none; animation: fadeUp 0.38s cubic-bezier(0.22,1,0.36,1) both; }
+.screen.active { display: block; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── eyebrow label ── */
+.eyebrow {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.eyebrow::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── headings ── */
 h1 {
-  font-size: clamp(22px, 6vw, 24px);
-  line-height: 1.35;
-  margin: 0 0 16px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: clamp(20px, 5.5vw, 24px);
+  font-weight: 700;
+  line-height: 1.45;
+  margin-bottom: 10px;
+  color: #f0eeff;
 }
 
-p {
+.subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 36px;
+}
+
+/* ── question text ── */
+.question {
+  font-size: clamp(16px, 4.5vw, 19px);
   line-height: 1.7;
-  margin: 0 0 18px;
-}
-
-button {
-  width: 100%;
-  margin-top: 12px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--button);
+  margin-bottom: 28px;
   color: var(--text);
-  font-size: 16px;
-  line-height: 1.4;
+  font-weight: 300;
+}
+
+/* ── answer buttons ── */
+.btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.btn-option {
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.12s;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
 }
 
-button:hover {
-  background: var(--button-hover);
+.btn-option::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-dim);
+  opacity: 0;
+  transition: opacity 0.18s;
 }
 
-button:active {
-  transform: translateY(1px);
+.btn-option:hover::before { opacity: 1; }
+.btn-option:hover { border-color: rgba(184,255,87,0.35); color: var(--accent); }
+.btn-option:active { transform: scale(0.97); }
+
+/* YES button gets accent on hover only, NO stays neutral */
+.btn-yes:hover { color: var(--accent); }
+
+/* ── progress bar ── */
+.progress-wrap {
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.progress-track {
+  flex: 1;
+  height: 3px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 0.5s cubic-bezier(0.22,1,0.36,1);
+}
+.progress-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
-.small {
+/* ── loading ── */
+#loading h1 { margin-bottom: 32px; }
+.dots {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes pulse {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.85); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+/* ── result ── */
+.result-badge {
+  display: inline-block;
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--accent);
+  padding: 4px 10px;
+  border-radius: 99px;
+  margin-bottom: 28px;
+}
+
+.result-text {
+  font-size: clamp(17px, 5vw, 20px);
+  line-height: 1.85;
+  font-weight: 700;
+  color: #f0eeff;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: rgba(184,255,87,0.05);
+  border: 1px solid rgba(184,255,87,0.15);
+  border-radius: 16px;
+  position: relative;
+}
+.result-text::before {
+  content: '❝';
+  position: absolute;
+  top: -10px; left: 16px;
+  font-size: 28px;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.btn-restart {
+  width: 100%;
+  padding: 15px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: transparent;
   color: var(--muted);
   font-size: 13px;
+  font-family: 'Syne', sans-serif;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: border-color 0.18s, color 0.18s;
+  -webkit-tap-highlight-color: transparent;
+  margin-top: 0;
+}
+.btn-restart:hover { border-color: var(--border); color: var(--text); }
+
+.disclaimer {
+  font-size: 11px;
+  color: var(--muted);
   line-height: 1.7;
   margin-top: 20px;
+  opacity: 0.7;
 }
 
-.result {
-  font-size: clamp(18px, 5vw, 20px);
-  line-height: 1.7;
-  font-weight: 700;
-  margin-top: 24px;
-  word-break: break-word;
+/* ── title screen ── */
+.title-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid rgba(184,255,87,0.3);
+  border-radius: 99px;
+  padding: 5px 12px;
+  margin-bottom: 24px;
+}
+.title-tag::before { content: '◆'; font-size: 7px; }
+
+#q1 h1 { font-size: clamp(22px, 6vw, 28px); margin-bottom: 12px; }
+
+.start-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 20px;
+  text-align: center;
 }
 
 @media (max-width: 420px) {
-  body {
-    align-items: flex-start;
-    padding-top: 40px;
-  }
-
-  .card {
-    padding: 24px 20px;
-    border-radius: 16px;
-  }
+  .card { padding: 28px 22px; border-radius: 20px; }
+  .btn-group { grid-template-columns: 1fr 1fr; }
 }
 </style>
 </head>
 
 <body>
-
 <main class="card">
 
+  <!-- Q1 / タイトル -->
   <section id="q1" class="screen active">
-    <h1>チャッピー先生による投資スタイル診断</h1>
-    <p>① 資本主義を信じている？</p>
-    <button type="button" onclick="answer('capital', true, 'q2')">YES</button>
-    <button type="button" onclick="answer('capital', false, 'q2')">NO</button>
+    <div class="title-tag">投資スタイル診断</div>
+    <h1>チャッピー先生による<br>投資スタイル診断</h1>
+    <p class="subtitle">3つの質問で、あなたの投資スタンスを明らかにします。</p>
+
+    <p class="question">① 資本主義を信じている？</p>
+    <div class="btn-group">
+      <button class="btn-option btn-yes" type="button" onclick="answer('capital', true, 'q2')">YES</button>
+      <button class="btn-option btn-no"  type="button" onclick="answer('capital', false, 'q2')">NO</button>
+    </div>
   </section>
 
+  <!-- Q2 -->
   <section id="q2" class="screen">
-    <h1>質問 2 / 3</h1>
-    <p>② リスクを取ってでも資産をなるべく増やしたい？</p>
-    <button type="button" onclick="answer('growth', true, 'q3')">YES</button>
-    <button type="button" onclick="answer('growth', false, 'q3')">NO</button>
+    <div class="eyebrow">質問 2 / 3</div>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" style="width:33%"></div></div>
+      <span class="progress-label">2 / 3</span>
+    </div>
+    <p class="question">② リスクを取ってでも資産をなるべく増やしたい？</p>
+    <div class="btn-group">
+      <button class="btn-option btn-yes" type="button" onclick="answer('growth', true, 'q3')">YES</button>
+      <button class="btn-option btn-no"  type="button" onclick="answer('growth', false, 'q3')">NO</button>
+    </div>
   </section>
 
+  <!-- Q3 -->
   <section id="q3" class="screen">
-    <h1>質問 3 / 3</h1>
-    <p>③ 夜はぐっすり寝たい？</p>
-    <button type="button" onclick="answer('sleep', true, 'loading')">YES</button>
-    <button type="button" onclick="answer('sleep', false, 'loading')">NO</button>
+    <div class="eyebrow">質問 3 / 3</div>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" style="width:66%"></div></div>
+      <span class="progress-label">3 / 3</span>
+    </div>
+    <p class="question">③ 夜はぐっすり寝たい？</p>
+    <div class="btn-group">
+      <button class="btn-option btn-yes" type="button" onclick="answer('sleep', true, 'loading')">YES</button>
+      <button class="btn-option btn-no"  type="button" onclick="answer('sleep', false, 'loading')">NO</button>
+    </div>
   </section>
 
+  <!-- Loading -->
   <section id="loading" class="screen">
-    <h1>分析中...</h1>
-    <p>あなたのスタイルを解析しています。</p>
+    <div class="eyebrow">解析中</div>
+    <h1>あなたのスタイルを<br>分析しています</h1>
+    <div class="dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
   </section>
 
+  <!-- Result -->
   <section id="result" class="screen">
-    <h1>診断結果</h1>
-    <div id="resultText" class="result"></div>
-    <p class="small">※これは投資助言ではありませんし、生活のするものでもありません。</p>
-    <button type="button" onclick="restart()">もう一度診断する</button>
+    <div class="eyebrow">診断結果</div>
+    <div class="result-badge">チャッピー先生より</div>
+    <div id="resultText" class="result-text"></div>
+    <button class="btn-restart" type="button" onclick="restart()">もう一度診断する</button>
+    <p class="disclaimer">※これは投資助言ではありませんし、生活のするものでもありません。</p>
   </section>
 
 </main>
 
 <script>
-const answers = {
-  capital: null,
-  growth: null,
-  sleep: null
-};
+const answers = { capital: null, growth: null, sleep: null };
 
 function showScreen(id) {
-  document.querySelectorAll(".screen").forEach(function(screen) {
-    screen.classList.remove("active");
-  });
-
-  document.getElementById(id).classList.add("active");
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
 function answer(key, value, nextScreen) {
   answers[key] = value;
   showScreen(nextScreen);
-
-  if (nextScreen === "loading") {
-    setTimeout(showResult, 1400);
-  }
+  if (nextScreen === 'loading') setTimeout(showResult, 1400);
 }
 
 function showResult() {
-  let text = "";
+  let text = '';
+  const { capital, growth, sleep } = answers;
 
-  if (answers.capital && answers.growth && answers.sleep) {
-    text = "インデックスでも眺めながら労働がんばるんやで。無理すんなよ";
-  } else if (answers.capital && answers.growth && !answers.sleep) {
-    text = "そのテンションで市場に来るな。まず寝るんやで";
-  } else if (answers.capital && !answers.growth && answers.sleep) {
-    text = "守り重視やな。そのまま平和に寝ててええんやで";
-  } else if (answers.capital && !answers.growth && !answers.sleep) {
-    text = "慎重なのか壊れてるのか分からん。寝ろ";
-  } else if (!answers.capital && answers.growth && answers.sleep) {
-    text = "欲張りセットやめろ。怪しい投資話には気をつけるんやで";
-  } else if (!answers.capital && answers.growth && !answers.sleep) {
-    text = "矛盾してるぞ。寝てから出直すんやで";
-  } else if (!answers.capital && !answers.growth && answers.sleep) {
-    text = "完成形や。何もせず寝てるんやで";
-  } else {
-    text = "全てを諦めてるやろ。とりあえず寝ろ";
-  }
+  if (capital && growth && sleep)       text = 'インデックスでも眺めながら労働がんばるんやで。無理すんなよ';
+  else if (capital && growth && !sleep) text = 'そのテンションで市場に来るな。まず寝るんやで';
+  else if (capital && !growth && sleep) text = '守り重視やな。そのまま平和に寝ててええんやで';
+  else if (capital && !growth && !sleep)text = '慎重なのか壊れてるのか分からん。寝ろ';
+  else if (!capital && growth && sleep) text = '欲張りセットやめろ。怪しい投資話には気をつけるんやで';
+  else if (!capital && growth && !sleep)text = '矛盾してるぞ。寝てから出直すんやで';
+  else if (!capital && !growth && sleep)text = '完成形や。何もせず寝てるんやで';
+  else                                  text = '全てを諦めてるやろ。とりあえず寝ろ';
 
-  document.getElementById("resultText").innerText = text;
-  showScreen("result");
+  document.getElementById('resultText').innerText = text;
+  showScreen('result');
 }
 
 function restart() {
-  answers.capital = null;
-  answers.growth = null;
-  answers.sleep = null;
-  showScreen("q1");
+  answers.capital = answers.growth = answers.sleep = null;
+  showScreen('q1');
 }
 </script>
-
 </body>
 </html>
